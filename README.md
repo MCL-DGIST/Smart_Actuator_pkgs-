@@ -1,5 +1,5 @@
 # Description
-This is a meta packages for MCL quadruped robot, including main real-time controller, GUI, MuJoco with ROS2 (Humble) interface in Nix development environment.
+This is a meta packages for Smart Actuator, including main real-time controller, GUI, MuJoco with ROS2 (Humble) interface in Nix development environment.
 Also, it has a common robotics library `mcl_robotics_cpp_lib` as a submodule.
 
 # How to collaborate
