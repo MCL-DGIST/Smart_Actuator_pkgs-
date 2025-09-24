@@ -1,0 +1,3 @@
+[submodule "mcl_robotics_lib_cpp"]
+	path = mcl_robotics_lib_cpp
+	url = git@github.com:MCL-DGIST/mcl_robotics_lib_cpp.git

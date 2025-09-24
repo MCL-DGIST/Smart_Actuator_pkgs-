@@ -1,0 +1,8 @@
+Invoking command in '/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/mylib': XML_CATALOG_FILES= _=/nix/store/yh6qg1nsi5h2xblcr67030pz58fsaxx3-coreutils-9.6/bin/env buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out" /nix/store/8jljd7zhwwcpqmfj3cz18nbr9x4dilf1-python3.12-cmake-3.31.5/bin/cmake /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/mylib -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/install/mylib

@@ -1,0 +1,40 @@
+[0.017s] Invoking command in '/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/simple_mujoco_ros2_interface': CMAKE_PREFIX_PATH=/nix/store/524p825vzng21y0qgq65cvjvjf2lq0yh-ros-env XML_CATALOG_FILES= _=/nix/store/yh6qg1nsi5h2xblcr67030pz58fsaxx3-coreutils-9.6/bin/env buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out" /nix/store/8jljd7zhwwcpqmfj3cz18nbr9x4dilf1-python3.12-cmake-3.31.5/bin/cmake /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/mujoco -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/install/simple_mujoco_ros2_interface
+[0.249s] -- The CXX compiler identification is GNU 14.2.1
+[0.266s] -- Detecting CXX compiler ABI info
+[0.497s] -- Detecting CXX compiler ABI info - done
+[0.604s] -- Check for working CXX compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/g++ - skipped
+[0.605s] -- Detecting CXX compile features
+[0.605s] -- Detecting CXX compile features - done
+[0.750s] [31mCMake Error at CMakeLists.txt:6 (find_package):
+[0.751s]   By not providing "Findmujoco.cmake" in CMAKE_MODULE_PATH this project has
+[0.751s]   asked CMake to find a package configuration file provided by "mujoco", but
+[0.751s]   CMake did not find one.
+[0.751s] 
+[0.751s]   Could not find a package configuration file provided by "mujoco" with any
+[0.751s]   of the following names:
+[0.751s] 
+[0.751s]     mujocoConfig.cmake
+[0.751s]     mujoco-config.cmake
+[0.751s] 
+[0.751s]   Add the installation prefix of "mujoco" to CMAKE_PREFIX_PATH or set
+[0.751s]   "mujoco_DIR" to a directory containing one of the above files.  If "mujoco"
+[0.751s]   provides a separate development package or SDK, be sure it has been
+[0.751s]   installed.
+[0.751s] 
+[0.751s] [0m
+[0.751s] -- Configuring incomplete, errors occurred!
+[0.758s] Invoked command in '/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/simple_mujoco_ros2_interface' returned '1': CMAKE_PREFIX_PATH=/nix/store/524p825vzng21y0qgq65cvjvjf2lq0yh-ros-env XML_CATALOG_FILES= _=/nix/store/yh6qg1nsi5h2xblcr67030pz58fsaxx3-coreutils-9.6/bin/env buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out" /nix/store/8jljd7zhwwcpqmfj3cz18nbr9x4dilf1-python3.12-cmake-3.31.5/bin/cmake /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/mujoco -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/install/simple_mujoco_ros2_interface

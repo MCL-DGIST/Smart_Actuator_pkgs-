@@ -1,0 +1,48 @@
+[0.015s] Invoking command in '/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/mcl_robotics_lib_cpp': XML_CATALOG_FILES= _=/nix/store/yh6qg1nsi5h2xblcr67030pz58fsaxx3-coreutils-9.6/bin/env buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out" /nix/store/8jljd7zhwwcpqmfj3cz18nbr9x4dilf1-python3.12-cmake-3.31.5/bin/cmake /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/mcl_robotics_lib_cpp -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/install/mcl_robotics_lib_cpp
+[0.071s] [33mCMake Warning (dev) in CMakeLists.txt:
+[0.071s]   No project() command is present.  The top-level CMakeLists.txt file must
+[0.071s]   contain a literal, direct call to the project() command.  Add a line of
+[0.071s]   code such as
+[0.071s] 
+[0.071s]     project(ProjectName)
+[0.071s] 
+[0.071s]   near the top of the file, but after cmake_minimum_required().
+[0.072s] 
+[0.072s]   CMake is pretending there is a "project(Project)" command on the first
+[0.072s]   line.
+[0.072s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[0.072s] [0m
+[0.072s] [33mCMake Warning (dev) in CMakeLists.txt:
+[0.072s]   cmake_minimum_required() should be called prior to this top-level project()
+[0.072s]   call.  Please see the cmake-commands(7) manual for usage documentation of
+[0.072s]   both commands.
+[0.072s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[0.072s] [0m
+[0.194s] -- The C compiler identification is GNU 14.2.1
+[0.350s] -- The CXX compiler identification is GNU 14.2.1
+[0.370s] -- Detecting C compiler ABI info
+[0.533s] -- Detecting C compiler ABI info - done
+[0.597s] -- Check for working C compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/gcc - skipped
+[0.597s] -- Detecting C compile features
+[0.598s] -- Detecting C compile features - done
+[0.734s] -- Detecting CXX compiler ABI info
+[0.940s] -- Detecting CXX compiler ABI info - done
+[1.032s] -- Check for working CXX compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/g++ - skipped
+[1.032s] -- Detecting CXX compile features
+[1.033s] -- Detecting CXX compile features - done
+[1.133s] -- Configuring done (1.1s)
+[1.135s] -- Generating done (0.0s)
+[1.135s] [33mCMake Warning:
+[1.135s]   Manually-specified variables were not used by the project:
+[1.135s] 
+[1.135s]     CMAKE_EXPORT_COMPILE_COMMANDS
+[1.135s] 
+[1.135s] [0m
+[1.136s] -- Build files have been written to: /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/mcl_robotics_lib_cpp

@@ -1,0 +1,24 @@
+-- The CXX compiler identification is GNU 14.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+[31mCMake Error at CMakeLists.txt:6 (find_package):
+  By not providing "Findmujoco.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "mujoco", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "mujoco" with any
+  of the following names:
+
+    mujocoConfig.cmake
+    mujoco-config.cmake
+
+  Add the installation prefix of "mujoco" to CMAKE_PREFIX_PATH or set
+  "mujoco_DIR" to a directory containing one of the above files.  If "mujoco"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+
+[0m
+-- Configuring incomplete, errors occurred!

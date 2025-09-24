@@ -1,0 +1,163 @@
+<mujoco model="3D_Quad">
+  <include file="./visual.xml"/>
+  <include file="./materials.xml"/>
+
+  <compiler angle="radian"/>
+  
+  <option timestep="0.001" integrator="RK4" gravity="0 0 -9.81"/>
+      <default>
+        <geom
+            friction="1 1 1"
+            density="1000"
+            margin="0.002"
+            condim="3"
+            contype="1"
+            conaffinity="1"
+        />
+    </default>
+  <worldbody>
+        <!-- 카메라 / 라이트 -->
+        <camera name="sideview" pos="3 0 1" euler="0 0 90" fovy="45"/>
+        <light name="light" pos="0 0 2"/>
+        <!-- 바닥 -->
+        <geom name="floor" type="plane" size="30 30 0.2" material="grid" pos="0 0 0"/>
+    
+    
+    <!-- <geom size="0.05 0.05 0.005" pos="0.1 0 0.375" type="box" rgba="0.3 0.3 0.3 1"/>
+    <geom size="0.05 0.05 0.005" pos="-0.1 0 0.375" type="box" rgba="0.2 0.2 0.2 1"/> -->
+    
+    <body name="torso_front" pos="0 0 0.375" euler= "0 0 0">
+                <!-- 질량/관성: 수정됨 -->
+                <inertial pos="0.1 0 0" mass="0.5" diaginertia="0.000225 0.001695 0.001695"/>
+                <freejoint/>
+                <geom
+                    type="box"
+                    size="0.1 0.1 0.01"
+                    pos="0.1 0 0"
+                    rgba="0.3 0.3 0.3 1"
+                />
+                <site name="imu" pos="0. 0 0" size="0.01" rgba="1 0 0 1"/>
+                <!--============================================-->
+                <!-- 1) 앞다리(왼쪽): Hip (Abduction + Flexion) -->
+                <!--============================================-->
+
+      <body name="FLHAA_link" pos="0.2 0.15 0.0" quat="0.707105 0 0.707108 0">
+        <inertial pos="0 0 0" mass="3.2" diaginertia="0.0025 0.0025 0.0025"/>
+        <joint name="FLHAA" pos="0 0 0" axis="0 0 -1" range="-0.8727 0.8727" actuatorfrcrange="-60 60"/>
+        <body name="FLHIP_link">
+          <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0028 0.0028 0.0001567"/>
+          <joint name="FLHIP" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+          <geom size="0.025 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+
+          <body name="FLKNEE_link" pos="0 0 -0.25">
+            <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0026 0.0026 0.0001"/>
+            <joint name="FLKNEE" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+            <geom size="0.02 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+            <site name = "FL_foot" pos="0 0 -0.25" size="0.01" rgba="0 1 0 1"/>
+          </body>
+        </body>
+      </body>
+
+      <body name="FRHAA_link" pos="0.2 -0.15 0.0" quat="0.707105 0 0.707108 0">
+        <inertial pos="0 0 0" mass="3.2" diaginertia="0.0025 0.0025 0.0025"/>
+        <joint name="FRHAA" pos="0 0 0" axis="0 0 -1" range="-0.8727 0.8727" actuatorfrcrange="-60 60"/>
+        <body name="FRHIP_link">
+          <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0028 0.0028 0.0001567"/>
+          <joint name="FRHIP" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+          <geom size="0.025 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+          <body name="FRKNEE_link" pos="0 0 -0.25">
+            <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0026 0.0026 0.0001"/>
+            <joint name="FRKNEE" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+            <geom size="0.02 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+            <site name = "FR_foot" pos="0 0 -0.25" size="0.01" rgba="0 1 0 1"/>
+          </body>
+        </body>
+      </body>
+    
+
+
+    <body name="torso_back" pos="0 0 0">
+      <!-- 질량/관성: 수정됨 -->
+      <inertial pos="-0.1 0 0" mass="0.9" diaginertia="0.000225 0.001695 0.001695"/>
+      <geom type="box" size="0.1 0.1 0.01" pos="-0.1 0 0" rgba="0.2 0.2 0.2 1"/>
+      <!-- 허리(waist) hinge -->
+      <!-- <joint name="waist" type="hinge" axis="0 -1 0" limited="true" range="-30 30" frictionloss = "0.2"/> -->
+      <!--=========================================-->
+      <!-- 3) 뒷다리(왼쪽): Hip (Abduction + Flexion) -->
+      <!--=========================================-->
+      
+      <body name="RLHAA_link" pos="-0.2 0.15 0.0" quat="0.707105 0 0.707108 0">
+        <inertial pos="0 0 0" mass="3.2" diaginertia="0.0025 0.0025 0.0025"/>
+        <joint name="RLHAA" pos="0 0 0" axis="0 0 -1" range="-0.8727 0.8727" actuatorfrcrange="-60 60"/>
+        <body name="RLHIP_link">
+          <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0028 0.0028 0.0001567"/>
+          <joint name="RLHIP" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+          <geom size="0.025 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+          <body name="RLKNEE_link" pos="0 0 -0.25">
+            <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0026 0.0026 0.0001"/>
+            <joint name="RLKNEE" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+            <geom size="0.02 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+            <site name = "RL_foot" pos="0 0 -0.25" size="0.01" rgba="0 1 0 1"/>
+          </body>
+        </body>
+      </body>
+      <body name="RRHAA_link" pos="-0.2 -0.15 0.0" quat="0.707105 0 0.707108 0">
+        <inertial pos="0 0 0" mass="3.2" diaginertia="0.0025 0.0025 0.0025"/>
+        <joint name="RRHAA" pos="0 0 0" axis="0 0 -1" range="-0.8727 0.8727" actuatorfrcrange="-60 60"/>
+        <body name="RRHIP_link">
+          <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0028 0.0028 0.0001567"/>
+          <joint name="RRHIP" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+          <geom size="0.025 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+          <body name="RRKNEE_link" pos="0 0 -0.25">
+            <inertial pos="0 0 -0.125" mass="0.3" diaginertia="0.0026 0.0026 0.0001"/>
+            <joint name="RRKNEE" pos="0 0 0" axis="0 -1 0" range="0 3.14159" actuatorfrcrange="-60 60"/>
+            <geom size="0.02 0.125" pos="0 0 -0.125" type="cylinder" rgba="0.1 0.1 0.1 1"/>
+            <site name = "RR_foot" pos="0 0 -0.25" size="0.01" rgba="0 1 0 1"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </body>
+
+  </worldbody>
+
+  <actuator>
+          <!-- ==== Front ==== -->
+        <motor joint="FLHAA"  ctrlrange="-60 60" gear="1"/>
+        <motor joint="FLHIP"   ctrlrange="-60 60" gear="1"/>
+        <motor joint="FLKNEE"  ctrlrange="-60 60" gear="1"/>
+        <motor joint="FRHAA" ctrlrange="-60 60" gear="1"/>
+        <motor joint="FRHIP"  ctrlrange="-60 60" gear="1"/>
+        <motor joint="FRKNEE" ctrlrange="-60 60" gear="1"/>
+
+
+        <!-- 허리(Spine) -->
+        <!-- <motor joint="waist" ctrlrange="-60 60" gear="1"/> -->
+
+        <!-- ==== Back ==== -->
+        <motor joint="RLHAA"   ctrlrange="-60 60" gear="1"/>
+        <motor joint="RLHIP"    ctrlrange="-60 60" gear="1"/>
+        <motor joint="RLKNEE"   ctrlrange="-60 60" gear="1"/>
+        <motor joint="RRHAA"  ctrlrange="-60 60" gear="1"/>
+        <motor joint="RRHIP"   ctrlrange="-60 60" gear="1"/>
+        <motor joint="RRKNEE"  ctrlrange="-60 60" gear="1"/>
+  </actuator>
+    <sensor>
+        <!-- IMU (torso_front) -->
+        <accelerometer site="imu" name="imu_accl"/>
+        <gyro          site="imu" name="imu_gyro"/>
+        <framelinvel  name="trunk_vel"  objtype="site" objname="imu" />
+        <framepos  name="trunk_pos"  objtype="site" objname="imu" />
+        
+
+        <!-- 발바닥 Force Sensor -->
+        <force site="FL_foot"  name="front_foot_force_left"/>
+        <force site="FR_foot" name="front_foot_force_right"/>
+        <force site="RL_foot"   name="back_foot_force_left"/>
+        <force site="RR_foot"  name="back_foot_force_right"/>
+
+
+    </sensor>
+
+
+</mujoco>

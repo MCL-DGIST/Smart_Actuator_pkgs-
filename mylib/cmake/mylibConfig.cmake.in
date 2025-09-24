@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/mylibTargets.cmake")
+
+include(CMakeFindDependencyMacro)
+find_dependency(pinocchio REQUIRED CONFIG)
+find_dependency(yaml-cpp REQUIRED)
+find_dependency(Eigen3 REQUIRED)
+find_dependency(urdfdom REQUIRED CONFIG)
+find_dependency(urdfdom_headers REQUIRED)

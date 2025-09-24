@@ -1,0 +1,25 @@
+[0.017s] Invoking command in '/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/build/mylib': XML_CATALOG_FILES= _=/nix/store/yh6qg1nsi5h2xblcr67030pz58fsaxx3-coreutils-9.6/bin/env buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out" /nix/store/8jljd7zhwwcpqmfj3cz18nbr9x4dilf1-python3.12-cmake-3.31.5/bin/cmake /home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/mylib -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_INSTALL_PREFIX=/home/cheetah/Desktop/JSHong/mcl_quadruped_pkgs/install/mylib
+[0.193s] -- The C compiler identification is GNU 14.2.1
+[0.386s] -- The CXX compiler identification is GNU 14.2.1
+[0.405s] -- Detecting C compiler ABI info
+[0.566s] -- Detecting C compiler ABI info - done
+[0.666s] -- Check for working C compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/gcc - skipped
+[0.666s] -- Detecting C compile features
+[0.666s] -- Detecting C compile features - done
+[0.778s] -- Detecting CXX compiler ABI info
+[1.006s] -- Detecting CXX compiler ABI info - done
+[1.110s] -- Check for working CXX compiler: /nix/store/8v6k283dpbc0qkdq81nb6mrxrgcb10i1-gcc-wrapper-14-20241116/bin/g++ - skipped
+[1.110s] -- Detecting CXX compile features
+[1.111s] -- Detecting CXX compile features - done
+[1.212s] [31mCMake Error at CMakeLists.txt:19 (message):
+[1.212s]   SOEM not found.  Please set SOEM_PATH or SOEM_DIR
+[1.212s] 
+[1.212s] [0m
+[1.212s] -- Configuring incomplete, errors occurred!

@@ -1,0 +1,4 @@
+[31mCMake Error at CMakeLists.txt:19 (message):
+  SOEM not found.  Please set SOEM_PATH or SOEM_DIR
+
+[0m
