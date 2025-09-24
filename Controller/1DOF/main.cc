@@ -110,7 +110,7 @@ int sigRTthreadKill = 0;
 
 
 /* Definitions for SOEM */
-const char *IFNAME = "enp2s0"; // "enx98fc84ec7fcc" "enp1s0"
+const char *IFNAME = "enp1s0"; // "enx98fc84ec7fcc" "enp1s0"
 
 char IOmap[4096]; //
 
@@ -158,8 +158,8 @@ auto main_thread = [](double sampling_ms, unsigned long long overrun_count){
 
                 
 
-            for(int i = 0; i< 2; i++)
-                target_torque[i] = I_->get_joint_input()[i];
+            // for(int i = 0; i< 2; i++)
+                // target_torque = I_->get_joint_input();
 
                 // cout <<"target torque: " << target_torque[0] << "  " << target_torque[1] << endl;
             

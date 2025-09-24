@@ -31,7 +31,7 @@ public:
     void Ctrl();
     const Control_DATA& data() const;
     
-    Vector2d get_joint_input();
+    double get_joint_input();
     void get_state(double time);
 
 private:

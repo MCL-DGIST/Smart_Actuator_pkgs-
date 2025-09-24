@@ -49,7 +49,7 @@
         void Cal_Kinematics(double t)
         {
             Kin_->Cal_kinematics(t);
-            jacb = Kin_->get_jacobian();
+            // jacb = Kin_->get_jacobian();
         }
 
 
@@ -112,7 +112,7 @@
             
 
     }
-    Vector2d Integrate::get_joint_input()
+    double Integrate::get_joint_input()
     {
         return pimpl_->Ctrl_input;
     }

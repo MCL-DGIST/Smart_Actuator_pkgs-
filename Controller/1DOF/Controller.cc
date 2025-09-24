@@ -50,9 +50,9 @@ struct Controller::Impl
 
 
         tau = 1.0/(2.0*M_PI*cutoff_freq);
-        j_P_term = j_KP.cwiseProduct(error);
-        j_I_term  = j_KI.cwiseProduct((Ts/2.0)*(error+error_old)) + I_term_old[];
-        j_D_term  = 2.0*j_KD.cwiseProduct((1.0/(2.0*tau+Ts))*(error-error_old))
+        j_P_term = j_KP * (error);
+        j_I_term  = j_KI * (Ts/2.0)*(error+error_old) + j_I_term_old;
+        j_D_term  = 2.0*j_KD * (1.0/(2.0*tau+Ts))*(error-error_old)
                           -((Ts-2.0*tau)/(2.0*tau+Ts)) * j_D_term_old;
         
         j_PID_output = j_P_term + j_I_term + j_D_term; 
@@ -103,7 +103,7 @@ Controller::~Controller() = default;
 
 
 
-Vector2d Controller::joint_PID(const Vector2d& error, const Vector2d& error_old)
+double Controller::joint_PID(const double& error, const double& error_old)
 {
     // pimpl_->get_gain();
     return pimpl_->joint_PID(error, error_old);
