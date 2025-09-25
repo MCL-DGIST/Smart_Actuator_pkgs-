@@ -61,7 +61,7 @@ MclQuadrupedGui::MclQuadrupedGui() : rqt_gui_cpp::Plugin(), widget_(0)
       "actuator_data", 10,
       [this](const mcl_quadruped_msgs::msg::ActuatorState::SharedPtr msg){
 
-      for(int i = 0; i < 2; i++)
+      for(int i = 0; i < NUMOFLEGS_gui; i++)
       { 
         joint_angle[i] = msg->joint_angle[i];
         current[i] = msg->current[i];
@@ -73,12 +73,12 @@ MclQuadrupedGui::MclQuadrupedGui() : rqt_gui_cpp::Plugin(), widget_(0)
       "controller_data", 10,
       [this](const mcl_quadruped_msgs::msg::ControllerState::SharedPtr msg){
 
-      for(int i = 0; i < 2; i++)
-      { 
-        leg_pos[i] = msg->leg_pos[i];
-        des_leg_pos[i] = msg->des_leg_pos[i];
-        cout << "leg_pos[" << i << "] = " << leg_pos[i] << endl;
-      }
+      // for(int i = 0; i < 2; i++)
+      // { 
+      //   leg_pos[i] = msg->leg_pos[i];
+      //   des_leg_pos[i] = msg->des_leg_pos[i];
+      //   cout << "leg_pos[" << i << "] = " << leg_pos[i] << endl;
+      // }
   });
 
 
@@ -114,12 +114,12 @@ void MclQuadrupedGui::initPlugin(qt_gui_cpp::PluginContext & context)
 
   //! Create Plot Start !//
 
-    createPlot(ui_.FLHIP_ang);
-    createPlot(ui_.FLKNEE_ang);
-    createPlot(ui_.FL_pos_x);
-    createPlot(ui_.FL_pos_z);
-    createPlot(ui_.FLHIP_current);
-    createPlot(ui_.FLKNEE_current);    
+    createPlot(ui_.Motor_ang);
+    createPlot(ui_.Motor_vel);
+    // createPlot(ui_.FL_pos_x);
+    // createPlot(ui_.FL_pos_z);
+    createPlot(ui_.Motor_current);
+    // createPlot(ui_.FLKNEE_current);    
 
   
   context.addWidget(widget_);  // add widget to user interface
@@ -129,8 +129,6 @@ void MclQuadrupedGui::initPlugin(qt_gui_cpp::PluginContext & context)
   ctrlword_state_.assign(NUMOFSLAVES_gui, 0);
 
   //! Enable Motor !//
-  
-    
       connect(ui_.enable_FLHIP, &QPushButton::toggled, this, [this](bool on){
       if (on) {send_ctrl_word_sequence(0);} 
       else {
@@ -139,13 +137,13 @@ void MclQuadrupedGui::initPlugin(qt_gui_cpp::PluginContext & context)
       }
       });
 
-      connect(ui_.enable_FLKNEE, &QPushButton::toggled, this, [this](bool on){
-      if (on) {send_ctrl_word_sequence(1);} 
-      else {
-        ctrlword_state_[1] = 0;
-        publish_control_word();
-      }
-      });
+      // connect(ui_.enable_FLKNEE, &QPushButton::toggled, this, [this](bool on){
+      // if (on) {send_ctrl_word_sequence(1);} 
+      // else {
+      //   ctrlword_state_[1] = 0;
+      //   publish_control_word();
+      // }
+      // });
   
   //! On/Off Switch !//
       connect(ui_.ctrl_on, &QPushButton::toggled, this, [this](bool on){
@@ -250,14 +248,14 @@ void MclQuadrupedGui::update_ui()
   key = timeStart.msecsTo(QTime::currentTime()) / 1000.0; // time elapsed since start of demo, in seconds
 
   ui_.pos_hip->setText(QString::number(joint_angle[0], 'f', 3));
-  ui_.pos_knee->setText(QString::number(joint_angle[1], 'f', 3));
+  // ui_.pos_knee->setText(QString::number(joint_angle[1], 'f', 3));
 
-  drawPlot(ui_.FLHIP_ang, joint_angle[0], joint_angle[0]);
-  drawPlot(ui_.FLKNEE_ang, joint_angle[1], joint_angle[1]);
-  drawPlot(ui_.FL_pos_x, leg_pos[0], des_leg_pos[0]);
-  drawPlot(ui_.FL_pos_z, leg_pos[1], des_leg_pos[1]);
-  drawPlot(ui_.FLHIP_current, current[0], current[0]);
-  drawPlot(ui_.FLKNEE_current, current[1], current[1]);
+  drawPlot(ui_.Motor_ang, joint_angle[0], joint_angle[0]);
+  drawPlot(ui_.Motor_vel, joint_vel[0], joint_vel[0]);
+  // drawPlot(ui_.FL_pos_x, leg_pos[0], des_leg_pos[0]);
+  // drawPlot(ui_.FL_pos_z, leg_pos[1], des_leg_pos[1]);
+  drawPlot(ui_.Motor_current, current[0], current[0]);
+  // drawPlot(ui_.FLKNEE_current, current[1], current[1]);
   
 
 

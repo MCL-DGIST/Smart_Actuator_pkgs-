@@ -38,8 +38,8 @@
         {            
             for(int i = 0; i < 2; i++)
             {
-                c.leg_pos[i] = Kin_->get_pos()[i];
-                c.des_leg_pos[i] = Traj_->swing_traj(t)[i];
+                // c.leg_pos[i] = Kin_->get_pos()[i];
+                // c.des_leg_pos[i] = Traj_->swing_traj(t)[i];
                 
                 
             }
@@ -89,7 +89,7 @@
 
     Vector2d Integrate::swing_traj()
     {
-        return pimpl_->Traj_->swing_traj(pimpl_->t);
+        // return pimpl_->Traj_->swing_traj(pimpl_->t);
     }
 
 

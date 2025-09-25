@@ -38,7 +38,7 @@
 #include "mcl_quadruped_msgs/msg/controller_state.hpp"
 #include "mcl_quadruped_msgs/msg/gui_command.hpp"
 
-#define NUMOFSLAVES_gui 2
+#define NUMOFSLAVES_gui 1
 #define NUMOFLEGS_gui 1
 
 namespace mcl_quadruped_gui
@@ -90,11 +90,12 @@ private:
 
   //! Actuator State !//
     std::vector<double> joint_angle = std::vector<double>(NUMOFSLAVES_gui, 0.0);
+    std::vector<double> joint_vel = std::vector<double>(NUMOFSLAVES_gui, 0.0);
     std::vector<double> current = std::vector<double>(NUMOFSLAVES_gui, 0.0);
     
   //! Leg State !//
-    std::vector<double> leg_pos = std::vector<double>(NUMOFSLAVES_gui, 0.0);
-    std::vector<double> des_leg_pos = std::vector<double>(NUMOFSLAVES_gui, 0.0);
+    // std::vector<double> leg_pos = std::vector<double>(NUMOFSLAVES_gui, 0.0);
+    // std::vector<double> des_leg_pos = std::vector<double>(NUMOFSLAVES_gui, 0.0);
   
   //! GUI Command !//
   std::vector<double> kp_x, kp_y, kp_z;
