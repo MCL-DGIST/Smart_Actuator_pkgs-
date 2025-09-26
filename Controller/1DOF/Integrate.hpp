@@ -12,21 +12,18 @@ using namespace std;
 class Actuator;
 class Trajectory;
 class Controller;
-class Kinematics;
 
 class Integrate
 {
 public:
     Integrate(std::shared_ptr<Actuator> Act_,
               std::shared_ptr<Trajectory> Traj_,
-            std::shared_ptr<Controller> Ctrl_,
-            std::shared_ptr<Kinematics> Kin_
+            std::shared_ptr<Controller> Ctrl_
 
         );
             
     ~Integrate();
 
-    Vector2d swing_traj();
     void Cal_Kinematics(double t);
     void Ctrl();
     const Control_DATA& data() const;

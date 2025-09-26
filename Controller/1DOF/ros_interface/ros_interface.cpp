@@ -45,10 +45,6 @@ ElmoRosInterface::ElmoRosInterface() : Node("elmo_ros_interface") {
     msg_actuator_.joint_vel.resize(NUMOFSLAVES);
     msg_actuator_.current.resize(NUMOFSLAVES);
     
-    msg_controller_.des_leg_pos.resize(NUMOFSLAVES);
-    msg_controller_.des_leg_vel.resize(NUMOFSLAVES);
-    msg_controller_.leg_pos.resize(NUMOFSLAVES);
-    msg_controller_.leg_vel.resize(NUMOFSLAVES);
 
 
     const size_t N = NUMOFLEGS;  // 다리 수
@@ -189,11 +185,10 @@ void ElmoRosInterface::copyStateFromSharedMemory() {
       
     }
 
-    //! Debuging
     for (int i = 0; i < NUMOFSLAVES; i++) {
       // msg_conrtoller_.leg_pos_x = c.
-      msg_controller_.des_leg_pos[i] = c.des_leg_pos[i];
-      msg_controller_.leg_pos[i] = c.leg_pos[i];
+      // msg_controller_.des_leg_pos[i] = c.des_leg_pos[i];
+      // msg_controller_.leg_pos[i] = c.leg_pos[i];
 
       // cout << "leg_pos[" << i << "] = " << c.leg_pos[i] << endl;
     }

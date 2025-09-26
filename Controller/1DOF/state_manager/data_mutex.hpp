@@ -9,6 +9,8 @@
 #include <vector>
 
 #define NUMOFSLAVES 1 //Number of slaves
+#define NUMOFSENSOR 1 //Number of slaves for sensor (Torque sensor)
+
 #define NUMOFLEGS 1
 struct SharedData_thread{
     

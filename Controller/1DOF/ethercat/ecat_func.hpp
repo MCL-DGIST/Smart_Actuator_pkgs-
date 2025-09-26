@@ -23,9 +23,13 @@
 
 // ---------------------- 프로젝트/슬레이브 정의 -------------------------
 
-#define NUMOF_SLAVES    2           // 슬레이브 수
-#define SOMANET_1       1           // 첫 번째 슬레이브 인덱스
-#define SOMANET_1_NAME  "SOMANET"   // slaveinfo 결과에 기반한 슬레이브 이름
+#define NUMOF_SLAVES    1           // 슬레이브 수
+#define ELMO_1       1           // 첫 번째 슬레이브 인덱스
+
+
+
+
+#define ELMO_1_NAME  "ModuleSlotsDrive"   // slaveinfo 결과에 기반한 슬레이브 이름
 
 // PDO 매핑을 위한 Sync Manager (SM) 인덱스
 #define SM2_RXPDO_ASSIGN    0x1C12  // RxPDO가 저장된 주소
@@ -47,7 +51,8 @@ typedef struct PACKED
     uint32_t bit_mask;                  // 출력 마스크 (0x60FE:02)
     uint32_t user_mosi;                 // 사용자 정의 MOSI (0x2703)
     int32_t  velocity_offset;           // 속도 오프셋 (0x60B1)
-} output_SOMANET_t;
+} output_ELMO_t;
+
 
 // ---------------------- TxPDO: Slave → Master -------------------------
 // Circulo에서 슬레이브가 마스터에게 보내는 상태 정보
@@ -66,12 +71,13 @@ typedef struct PACKED
     int32_t  position_demand_internal;  // 내부 위치 목표값 (0x60FC)
     int32_t  velocity_demand_value;     // 속도 명령 (0x606B)
     int16_t  torque_demand;             // 토크 명령 (0x6074)
-} input_SOMANET_t;
+} input_ELMO_t;
+
 
 // ---------------------- 외부 정의된 PDO 주소 배열 -------------------------
 // main.cpp에서 이 주소 배열을 초기화함
-extern uint16_t RXPDO_ADDR_SOMANET[2];  // RxPDO 주소들
-extern uint16_t TXPDO_ADDR_SOMANET[2];  // TxPDO 주소들
+extern uint16_t RXPDO_ADDR_ELMO[2];  // RxPDO 주소들
+extern uint16_t TXPDO_ADDR_ELMO[2];  // TxPDO 주소들
 
 // ---------------------- EtherCAT 초기화 함수 정의 -------------------------
 int ecat_init(const char *ifname);        // EtherCAT 초기화 함수
@@ -83,8 +89,8 @@ extern const char* IFNAME;      // e.g., "enp2s0"
 extern char IOmap[4096];        // PDO 매핑 버퍼
 
 // main.cc에서 정의됨 (PDO 포인터)
-extern output_SOMANET_t* out_somanet[NUMOF_SLAVES];
-extern input_SOMANET_t*  in_somanet [NUMOF_SLAVES];
+extern output_ELMO_t* out_ELMO[NUMOF_SLAVES];
+extern input_ELMO_t*  in_ELMO [NUMOF_SLAVES];
 
 // main.cc에서 정의됨 (WKC 공유)
 extern int expectedWKC;

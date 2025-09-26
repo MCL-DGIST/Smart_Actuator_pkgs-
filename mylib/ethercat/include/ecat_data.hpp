@@ -10,13 +10,15 @@
 #include <array>
 #include <cstdint>
 
-#define SLAVES_NUM 2      // Number of ELMO slaves
-#define PTWI_SLAVES_NUM 2 // Number of ELMO Platinum slaves
-#define FT_SENSOR_NUM 2   // Number of Force/Torque sensors
-#define SLAVE_PTWI
-#define SLAVE_ANYBUS
-#define SLAVE_FT
-#define SLAVE_FT_NUM 2 // Number of Force/Torque sensors
+#define SLAVES_NUM 1      // Number of ELMO slaves
+#define PTWI_SLAVES_NUM 1 // Number of ELMO Platinum slaves
+#define FT_SENSOR_NUM   // Number of Force/Torque sensors
+#define SLAVE_PTWI 1 
+#define NON_SLAVE_TS
+
+// #define SLAVE_ANYBUS 
+// #define SLAVE_FT
+// #define SLAVE_FT_NUM  // Number of Force/Torque sensors
 
 // Manipulator type definitions
 #define RA_ONLY

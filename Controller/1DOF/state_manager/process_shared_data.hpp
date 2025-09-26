@@ -39,9 +39,9 @@ struct GUI_Command {
 
 struct Control_DATA{
 
-    std::array<double, NUMOFSLAVES> des_leg_pos;
-    std::array<double, NUMOFSLAVES> leg_pos;
-    std::array<double, NUMOFSLAVES> des_leg_vel;
-    std::array<double, NUMOFSLAVES> leg_vel;
+    // std::array<double, NUMOFSLAVES> des_leg_pos;
+    // std::array<double, NUMOFSLAVES> leg_pos;
+    // std::array<double, NUMOFSLAVES> des_leg_vel;
+    // std::array<double, NUMOFSLAVES> leg_vel;
 
 };

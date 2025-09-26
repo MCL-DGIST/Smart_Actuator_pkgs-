@@ -18,6 +18,6 @@ public:
     Matrix3d skew(const Vector3d &v);
 
 private:
-    struct Impl;                    // 전방 선언
-    std::unique_ptr<Impl> pimpl_;   // 실제 구현은 Impl 내부에
+    struct Impl;                    
+    std::unique_ptr<Impl> pimpl_;   
 };

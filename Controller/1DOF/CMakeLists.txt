@@ -68,10 +68,13 @@ include_directories(
   /usr/SOEM/osal
   /usr/SOEM/osal/linux
   /usr/SOEM/oshw/linux
+
+  
 )
 
 link_directories(
   ${EVL_LIBRARY_DIRS}
+
 )
 
 # ------------------------------------------------------------
@@ -87,6 +90,8 @@ set(PROJECT_SOURCES
   Integrate.cc
   Kinematics.cc
   filter.cc
+  ${CMAKE_SOURCE_DIR}/../../mylib/ethercat/src/ecat_hardware_interface.cpp
+  ${CMAKE_SOURCE_DIR}/../../mylib/ethercat/src/ecat_device_control_objects.cpp
 )
 
 

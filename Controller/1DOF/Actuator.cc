@@ -12,13 +12,13 @@ struct Actuator::Impl{
     std::unique_ptr<filter> F; 
 
     int numofslaves;
-    double torque_constant = 0.241679;
+    double torque_constant = 0.231;
     double GearRatio = 100.0;
     double controlword[NUMOFSLAVES];
 
     // Circulo 9 (SOMANET) 구조체 포인터 정의
-    std::vector<output_SOMANET_t*> out_somanet;  // RxPDO (우리가 슬레이브로 보내는 데이터)
-    std::vector<input_SOMANET_t*>  in_somanet;    // TxPDO (슬레이브로부터 받는 데이터)
+    std::vector<output_ELMO_t*> out_elmo;  // RxPDO (우리가 슬레이브로 보내는 데이터)
+    std::vector<input_ELMO_t*>  in_elmo;    // TxPDO (슬레이브로부터 받는 데이터)
 
 
     Actuator_DATA a;
@@ -27,9 +27,10 @@ struct Actuator::Impl{
     int sigRTthreadKill = 0;
     uint16_t slave_state[NUMOFSLAVES];
 
+
     Impl(int n) 
     : numofslaves(n),
-    out_somanet(n, nullptr), in_somanet(n, nullptr), F(std::make_unique<filter>())
+    out_elmo(n, nullptr), in_elmo(n, nullptr), F(std::make_unique<filter>())
     {}
     
     bool BindPDO() {
@@ -37,18 +38,18 @@ struct Actuator::Impl{
         if (numofslaves < 1 || numofslaves > ec_slavecount) return false;
 
         // Set pointer size
-        in_somanet.resize(numofslaves, nullptr);
-        out_somanet.resize(numofslaves, nullptr);
+        in_elmo.resize(numofslaves, nullptr);
+        out_elmo.resize(numofslaves, nullptr);
 
         a.numofslaves = static_cast<uint32_t>(numofslaves);
 
         for (int i = 0; i < numofslaves; ++i) {
             int si = i + 1; // 1-based → 0-based 매핑
-            in_somanet[i]  = reinterpret_cast<input_SOMANET_t*>(ec_slave[si].inputs);
-            out_somanet[i] = reinterpret_cast<output_SOMANET_t*>(ec_slave[si].outputs);
-            if (!in_somanet[i] || !out_somanet[i]) {
+            in_elmo[i]  = reinterpret_cast<input_ELMO_t*>(ec_slave[si].inputs);
+            out_elmo[i] = reinterpret_cast<output_ELMO_t*>(ec_slave[si].outputs);
+            if (!in_elmo[i] || !out_elmo[i]) {
                 std::fprintf(stderr, "BindPDO: null PDO at slave %d (in=%p, out=%p)\n",
-                             si, (void*)in_somanet[i], (void*)out_somanet[i]);
+                             si, (void*)in_elmo[i], (void*)out_elmo[i]);
                 return false;
             }
         }
@@ -75,7 +76,7 @@ struct Actuator::Impl{
 
 
         for (int i = 0; i < numofslaves; ++i) {
-            auto* in = in_somanet[i];           // in_somanet이 vector/배열이어야 함
+            auto* in = in_elmo[i];           // in_elmo이 vector/배열이어야 함
             if (!in) continue;
 
             // 값 채우기 (벡터 크기는 BindPDO에서 numofslaves로 resize 되어 있어야 함)
@@ -101,11 +102,38 @@ struct Actuator::Impl{
         // a.joint_vel[0] = F->lowpassfilter()
             // 단위: 정격토크/1000 ex) 100 -> 정격토크*0.1
             // JD10 정격토크: 20Nm
-            // Ain1_raw     = in_somanet->analog_input[0];  // analog_input[0~3]
-            // Din_raw      = in_somanet->digital_inputs;
+            // Ain1_raw     = in_elmo->analog_input[0];  // analog_input[0~3]
+            // Din_raw      = in_elmo->digital_inputs;
         }
     
+
+        // #ifdef SLAVE_PTWI
+        //     elmo_ptwi_driver_->actual_position_cnt = ptwi_tx_pdo_->TXPDO_ACTUAL_POSITION_DATA;
+        //     elmo_ptwi_driver_->additional_position_cnt = ptwi_tx_pdo_->TXPDO_ADDITIONAL_ACTUAL_POSITION_DATA;
+        //     elmo_ptwi_driver_->actual_torque_rated = ptwi_tx_pdo_->TXPDO_ACTUAL_TORQUE_DATA;
+        //     elmo_ptwi_driver_->dclink_circuit_voltage = ptwi_tx_pdo_->TXPDO_DC_LINK_CIRCUIT_VOLTAGE_DATA;
+        //     elmo_ptwi_driver_->statusword = ptwi_tx_pdo_->TXPDO_STATUSWORD_DATA;
+        //     elmo_ptwi_driver_->mode_of_operation_disp = ptwi_tx_pdo_->TXPDO_MODE_OF_OPERATION_DISPLAY_DATA;
+        //     elmo_ptwi_driver_->actual_velocity_cnt = ptwi_tx_pdo_->TXPDO_ACTUAL_VELOCITY_DATA;
+        // #endif
+        // #ifdef SLAVE_GTWI
+        //     elmo_gtwi_driver_->actual_position_cnt = gtwi_tx_pdo_->TXPDO_ACTUAL_POSITION_DATA;
+        //     elmo_gtwi_driver_->actual_torque_rated = gtwi_tx_pdo_->TXPDO_ACTUAL_TORQUE_DATA;
+        //     elmo_gtwi_driver_->statusword = gtwi_tx_pdo_->TXPDO_STATUSWORD_DATA;
+        //     elmo_gtwi_driver_->mode_of_operation_disp = gtwi_tx_pdo_->TXPDO_MODE_OF_OPERATION_DISPLAY_DATA;
+        //     elmo_gtwi_driver_->auxiliary_raw = gtwi_tx_pdo_->TXPDO_AUX_POSITION_ACTUAL_DATA;
+        //     elmo_gtwi_driver_->actual_velocity_cnt = gtwi_tx_pdo_->TXPDO_ACTUAL_VELOCITY_DATA;
+        // #endif
+        // #ifdef SLAVE_ANYBUS
+        //     //   if (manipulator_type_ == RA && anybus_tx_pdo_ != nullptr) {
+        //     //     anybus_communicator_->torque_sensor_raw[joint_id_][0] = anybus_tx_pdo_->TSIB[2 * joint_id_ + 4];
+        //     //     anybus_communicator_->torque_sensor_raw[joint_id_][1] = anybus_tx_pdo_->TSIB[2 * joint_id_ + 5];
+        //     //   }
+        // #endif
     }
+
+
+
 
     void Send_DATA()
     {
@@ -132,23 +160,39 @@ struct Actuator::Impl{
                 d.target_torque[i] = 0;
                 controlword[i] = 0;
             }
-            // out_somanet->target_position = (int32_t)((target_position[i] + motor_offset[i]) / (360.0 / 1048576.0 / 9.0));
-            // out_somanet->target_velocity = (int32_t)(target_speed[i] / (360.0 / 1048576.0 / 9.0));
+            // out_elmo->target_position = (int32_t)((target_position[i] + motor_offset[i]) / (360.0 / 1048576.0 / 9.0));
+            // out_elmo->target_velocity = (int32_t)(target_speed[i] / (360.0 / 1048576.0 / 9.0));
             if(i == 1) // KNEE MOTOR
             {
-                out_somanet[i]->target_torque   = (d.target_torque[i]) * (1000.0 / 20.0); //단위: 정격토크/1000 ex) 1000 -> 정격토크
+                out_elmo[i]->target_torque   = (d.target_torque[i]) * (1000.0 / 20.0); //단위: 정격토크/1000 ex) 1000 -> 정격토크
             }
             else // HIP MOTOR
             {
-                out_somanet[i]->target_torque   = (-d.target_torque[i]) * (1000.0 / 20.0);
+                out_elmo[i]->target_torque   = (-d.target_torque[i]) * (1000.0 / 20.0);
             }
-            out_somanet[i]->mode_of_operation = 10;
-            out_somanet[i]->controlword     = controlword[i];
+            out_elmo[i]->mode_of_operation = 10;
+            out_elmo[i]->controlword     = controlword[i];
             
             
         }
 
-        // std::cout << "Ctrl input: " << -d.target_torque[0] << "  " <<  -d.target_torque[1] << std::endl;
+
+
+        //   ActuatorCommand command = command_double_buffer_.read();
+            // #ifdef SLAVE_PTWI
+            // ptwi_rx_pdo_->RXPDO_CONTROLWORD_DATA = command.controlword_;
+            // ptwi_rx_pdo_->RXPDO_MODE_OF_OPERATION_DATA = command.mode_of_operation_;
+            // ptwi_rx_pdo_->RXPDO_TARGET_TORQUE_DATA = command.target_torque_;
+            // ptwi_rx_pdo_->RXPDO_DIGITAL_OUTPUTS_DATA = elmo_ptwi_driver_->digital_output;
+            // #endif
+            // #ifdef SLAVE_GTWI
+            // gtwi_rx_pdo_->RXPDO_CONTROLWORD_DATA = command.controlword_;
+            // gtwi_rx_pdo_->RXPDO_MODE_OF_OPERATION_DATA = command.mode_of_operation_;
+            // gtwi_rx_pdo_->RXPDO_TARGET_TORQUE_DATA = command.target_torque_;
+            // gtwi_rx_pdo_->RXPDO_DIGITAL_OUTPUTS_DATA = elmo_gtwi_driver_->digital_output;
+            // gtwi_rx_pdo_->RXPDO_TARGET_POSITION_DATA = elmo_gtwi_driver_->target_position_cnt;
+            // gtwi_rx_pdo_->RXPDO_TARGET_VELOCITY_DATA = elmo_gtwi_driver_->target_velocity_cnt;
+            // #endif
     }
 
 
@@ -197,7 +241,25 @@ void Actuator::resetMotorOffset() {
     pimpl_->resetMotorOffset();
 }
 
+void Actuator::setPtwiPdoPointers(void *ptwi_tx_pdo, void *ptwi_rx_pdo) {
+#ifdef SLAVE_PTWI
+  ptwi_tx_pdo_ = static_cast<PtwiTxPDOMap *>(ptwi_tx_pdo);
+  ptwi_rx_pdo_ = static_cast<PtwiRxPDOMap *>(ptwi_rx_pdo);
+#endif
+}
 
+void Actuator::setGtwiPdoPointers(void *gtwi_tx_pdo, void *gtwi_rx_pdo) {
+#ifdef SLAVE_GTWI
+  gtwi_tx_pdo_ = static_cast<GtwiTxPDOMap *>(gtwi_tx_pdo);
+  gtwi_rx_pdo_ = static_cast<GtwiRxPDOMap *>(gtwi_rx_pdo);
+#endif
+}
+
+void Actuator::setAnybusPdoPointers(void *anybus_tx_pdo) {
+#ifdef SLAVE_ANYBUS
+  anybus_tx_pdo_ = static_cast<AnybusTxPDOMap *>(anybus_tx_pdo);
+#endif
+}
 
 // double Actuator::get_pos_load(int ACT_NUM){return pimpl_->pos_load[ACT_NUM];}
 // double Actuator::get_vel_load(int ACT_NUM){return pimpl_->vel_load[ACT_NUM];}

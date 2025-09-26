@@ -1,16 +1,17 @@
 #include "ecat_func.hpp"
+#include <iostream>
 
 boolean needlf;
 boolean inOP;
 uint8 currentgroup = 0;
 
 // RxPDO 매핑: 0x1600 하나
-    uint16_t RXPDO_ADDR_SOMANET[2] = {
+    uint16_t RXPDO_ADDR_ELMO[2] = {
         1, 0x1600  // entry 개수 1개, 주소는 0x1600
     };
 
 // TxPDO 매핑: 0x1A00 하나
-    uint16_t TXPDO_ADDR_SOMANET[2] = {
+    uint16_t TXPDO_ADDR_ELMO[2] = {
         1, 0x1A00  // entry 개수 1개, 주소는 0x1A00
     };
 
@@ -37,9 +38,9 @@ int ecat_init(const char *ifname)
             }
 
             // 슬레이브 이름 확인
-            if (strcmp(ec_slave[SOMANET_1].name, SOMANET_1_NAME))
+            if (strcmp(ec_slave[ELMO_1].name, ELMO_1_NAME))
             {
-                printf("Name of slave is %s, not %s.\n", ec_slave[SOMANET_1].name, SOMANET_1_NAME);
+                printf("Name of slave is %s, not %s.\n", ec_slave[ELMO_1].name, ELMO_1_NAME);
                 return 0;
             }
         }
@@ -66,11 +67,11 @@ int ecat_PDO_Config(uint16 slave)
 
     // RxPDO 매핑 설정 (0x1C12)
     retval_SM2 = ec_SDOwrite(slave, SM2_RXPDO_ASSIGN, 0x00, TRUE,
-                             sizeof(RXPDO_ADDR_SOMANET), &RXPDO_ADDR_SOMANET, EC_TIMEOUTSAFE);
+                             sizeof(RXPDO_ADDR_ELMO), &RXPDO_ADDR_ELMO, EC_TIMEOUTSAFE);
 
     // TxPDO 매핑 설정 (0x1C13)
     retval_SM3 = ec_SDOwrite(slave, SM3_TXPDO_ASSIGN, 0x00, TRUE,
-                             sizeof(TXPDO_ADDR_SOMANET), &TXPDO_ADDR_SOMANET, EC_TIMEOUTSAFE);
+                             sizeof(TXPDO_ADDR_ELMO), &TXPDO_ADDR_ELMO, EC_TIMEOUTSAFE);
 
     if (retval_SM2 <= 0 || retval_SM3 <= 0)
     {

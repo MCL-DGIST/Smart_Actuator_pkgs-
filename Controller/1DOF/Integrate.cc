@@ -13,7 +13,6 @@
         std::shared_ptr<Actuator> Act_;
         std::shared_ptr<Trajectory> Traj_;
         std::shared_ptr<Controller> Ctrl_;
-        std::shared_ptr<Kinematics> Kin_;
 
         double t = 0;
 
@@ -21,14 +20,12 @@
 
         Impl(std::shared_ptr<Actuator> A_,
             std::shared_ptr<Trajectory> T_,
-            std::shared_ptr<Controller> C_,
-            std::shared_ptr<Kinematics> K_
+            std::shared_ptr<Controller> C_
 
         )
         :Act_(std::move(A_)),
         Traj_(std::move(T_)),
-        Ctrl_(std::move(C_)),
-        Kin_(std::move(K_))    
+        Ctrl_(std::move(C_))   
 
         {
             
@@ -36,20 +33,8 @@
 
         void Send_to_Gui()
         {            
-            for(int i = 0; i < 2; i++)
-            {
-                // c.leg_pos[i] = Kin_->get_pos()[i];
-                // c.des_leg_pos[i] = Traj_->swing_traj(t)[i];
-                
-                
-            }
-         
-        }
 
-        void Cal_Kinematics(double t)
-        {
-            Kin_->Cal_kinematics(t);
-            // jacb = Kin_->get_jacobian();
+         
         }
 
 
@@ -66,14 +51,10 @@
 
     Integrate::Integrate(std::shared_ptr<Actuator> A_,
                         std::shared_ptr<Trajectory> T_,
-                        std::shared_ptr<Controller> C_,
-                        std::shared_ptr<Kinematics> K_)
+                        std::shared_ptr<Controller> C_)
     :pimpl_(std::make_unique<Impl>(std::move(A_), 
                                 std::move(T_),
-                                std::move(C_),
-                                std::move(K_))
-                                )
-                                
+                                std::move(C_)))
     {
 
     }
@@ -87,10 +68,7 @@
     }
 
 
-    Vector2d Integrate::swing_traj()
-    {
-        // return pimpl_->Traj_->swing_traj(pimpl_->t);
-    }
+
 
 
 
@@ -98,10 +76,7 @@
     /// Calculate Kinematics at time t
     /// This function is used in the control loop to get the current state of the robot
     /// and the desired state given by the trajectory.
-    void Integrate::Cal_Kinematics(double t)
-    {
-        pimpl_->Cal_Kinematics(t);
-    }
+
 
 
 //* Getter Function 

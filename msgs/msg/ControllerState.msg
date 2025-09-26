@@ -4,12 +4,6 @@ sensor_msgs/JointState joint_state
 sensor_msgs/JointState joint_state_des
 
 
-float64[] leg_pos
-float64[] des_leg_pos
-
-float64[] leg_vel
-float64[] des_leg_vel
-
 
 uint16[] statusword
 int8[] mode_of_operation_disp
