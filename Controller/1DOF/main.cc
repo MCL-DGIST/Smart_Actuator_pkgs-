@@ -114,7 +114,7 @@ int sigRTthreadKill = 0;
 /* Definitions for SOEM */
 const char *IFNAME = "enp1s0"; // "enx98fc84ec7fcc" "enp1s0"
 
-char IOmap[4096]; //
+char IOmap[64 * 1024]; //
 
 int expectedWKC; //Working Counter:
 volatile int wkc; //Doesn't want to occupy memory location
@@ -132,6 +132,9 @@ double CL[NUMOFSLAVES]; //Current Limit(CL) in ELMO driver, in Amp
         #define RT_ELMO_PERIOD_MS 1     // Real-time ELMO PDO Read/Write period (1 msec)
         #define RT_CTRL_PERIOD_MS 1     // Real-time control period (1 msec)
         #define RT_DATALOG_MS 100       // Real-time control period (1 msec)
+        
+        #define NUMOF_GTWI_SLAVES 1
+        #define NUMOF_PTWI_SLAVES 1
 
 
 
@@ -166,245 +169,210 @@ double CL[NUMOFSLAVES]; //Current Limit(CL) in ELMO driver, in Amp
         }
         }
 
-        template <typename Work> void run_periodic(int id, int period_ms, Work work) {
-        // per‐thread timing state
-        struct timespec prev_rt = {0, 0};
-        unsigned long long overrun_count = 0;
+ // ============================================================================
+// 1) run_periodic  (period_ms 기준, EVL 타이머 설정 + 지터/오버런 집계)
+// ============================================================================
+template <typename Work>
+void run_periodic(int id, int period_ms, Work work) {
+    struct timespec prev_rt = {0, 0};
+    unsigned long long overrun_count = 0;
 
-        // attach to EVL core
-        int desc = evl_attach_self("rt_thread_%d:%d", id, getpid());
-        if (desc < 0) {
-            std::cerr << "evl_attach_self(" << id << ") failed: " << std::strerror(-desc) << std::endl;
-            return;
-        }
+    // 고유 TID 확보(리눅스에서는 gettid가 유일)
+    unsigned long tid = 0;
+#ifdef SYS_gettid
+    tid = (unsigned long)syscall(SYS_gettid);
+#else
+    tid = (unsigned long)pthread_self(); // 대체
+#endif
 
-        // create EVL timer
-        int tfd = evl_new_timer(EVL_CLOCK_MONOTONIC);
-        if (tfd < 0) {
-            std::cerr << "evl_new_timer(" << id << ") failed: " << std::strerror(-tfd) << std::endl;
-            return;
-        }
+    // attach to EVL core: 이름 충돌 방지를 위해 pid + tid 포함
+    int desc = evl_attach_self("rt_thread_%d:%d:%lu", id, getpid(), tid);
+    if (desc < 0) {
+        std::cerr << "evl_attach_self(" << id << ") failed: " << std::strerror(-desc) << std::endl;
+        return;
+    }
 
-        // configure periodic timer
-        struct timespec now;
-        evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
-        // struct itimerspec its{};
-        // add_us(its.it_value, now, period_us);
-        // its.it_interval.tv_sec = period_us / 1000000;
-        // its.it_interval.tv_nsec = (period_us % 1000000) * 1000L;
+    // create EVL timer
+    int tfd = evl_new_timer(EVL_CLOCK_MONOTONIC);
+    if (tfd < 0) {
+        std::cerr << "evl_new_timer(" << id << ") failed: " << std::strerror(-tfd) << std::endl;
+        return;
+    }
 
-    //! Debugging
-        struct itimerspec its{};
-        int period_us = period_ms * 1000;
-        if (period_us < 100) period_us = 100; // 안전가드: 100 μs 미만 금지
-        add_us(its.it_value, now, period_us);
-        its.it_interval.tv_sec  = period_us / 1000000;
-        its.it_interval.tv_nsec = (period_us % 1000000) * 1000L;
+    // configure periodic timer (ms → us → ns)
+    struct timespec now;
+    evl_read_clock(EVL_CLOCK_MONOTONIC, &now);
 
-        if (evl_set_timer(tfd, &its, nullptr) < 0) {
-            std::cerr << "evl_set_timer(" << id << ") failed" << std::endl;
-            return;
-        }
+    struct itimerspec its{};
+    int period_us = period_ms * 1000;
+    if (period_us < 100) period_us = 100; // 100us 미만 금지(안전 가드)
+    add_us(its.it_value, now, period_us);
+    its.it_interval.tv_sec  = period_us / 1000000;
+    its.it_interval.tv_nsec = (period_us % 1000000) * 1000L;
 
-        while (ThreadRunningFlag) {
-            __u64 ticks;
-            if (oob_read(tfd, &ticks, sizeof(ticks)) < 0) {
-            std::cerr << "oob_read(" << id << ") failed: " << std::strerror(-ticks) << std::endl;
-            //            evl_printf("oob_read(%d) failed: %s\n",
-            //            id,std::strerror(-ticks));
+    if (evl_set_timer(tfd, &its, nullptr) < 0) {
+        std::cerr << "evl_set_timer(" << id << ") failed" << std::endl;
+        return;
+    }
+
+    while (ThreadRunningFlag) {
+        __u64 ticks;
+        int r = oob_read(tfd, &ticks, sizeof(ticks));
+        if (r < 0) {
+            std::cerr << "oob_read(" << id << ") failed: " << std::strerror(-r) << std::endl;
             break;
-            }
-
-            // 1) 시스템 시각 수집
-            struct timespec trt;
-            //        clock_gettime(CLOCK_REALTIME, &trt);
-            evl_read_clock(EVL_CLOCK_MONOTONIC, &trt);
-
-            // 2) delta 계산 (ns 단위)
-            long delta_ns;
-            if (prev_rt.tv_sec == 0 && prev_rt.tv_nsec == 0) {
-            // 첫 루프인 경우
-            delta_ns = period_us * 1000L;
-            }
-            else {
-            delta_ns = (trt.tv_sec - prev_rt.tv_sec) * 1000000000L + (trt.tv_nsec - prev_rt.tv_nsec);
-            }
-            prev_rt = trt;
-
-            // 3) ms 단위 변환
-            double sampling_ms = delta_ns * 1e-6;
-
-            // 4) jitter 계산
-            // double jitter_ms = sampling_ms - static_cast<double>(period_us / 1000.0);
-        //! Debugging
-            double jitter_ms = sampling_ms - static_cast<double>(period_ms);
-            // 5) overrun 집계
-            if (ticks > 1) { overrun_count += (ticks - 1); }
-
-            work(sampling_ms, overrun_count); // call user-provided work every cycle
-        }
         }
 
-        auto slaveReadWriteLoop = [](double sampling_ms, unsigned long long overrun_count) {
-        // 11-2. Sending processdata (calculated one tick before) => In order to ensure punctuality
+        // 1) 시스템 시각 수집
+        struct timespec trt;
+        evl_read_clock(EVL_CLOCK_MONOTONIC, &trt);
 
-        ec_send_overlap_processdata(); // PDO sending
-
-        wkc = ec_receive_processdata(EC_TIMEOUTRET); // returns WKC
-
-        if (expectedWKC > wkc) {
-            // In case of checked wkc less than WKC that have to be right
-            // This means the etherCAT frame cannot be successfully read or wrote on at least one
-            // slaves.
-            ThreadRunningFlag = 0; // Kill the entire of the RT thread
-            cout << "sigRTKilled at wkc calculation!" << endl;
+        // 2) delta 계산 (ns)
+        long delta_ns;
+        if (prev_rt.tv_sec == 0 && prev_rt.tv_nsec == 0) {
+            delta_ns = static_cast<long>(period_us) * 1000L; // 첫 루프
+        } else {
+            delta_ns = (trt.tv_sec - prev_rt.tv_sec) * 1000000000L
+                     + (trt.tv_nsec - prev_rt.tv_nsec);
         }
+        prev_rt = trt;
 
-        // for (int i = 0; i < SLAVES_NUM; ++i) {
-        //     actuators_ptr[i].receiveData();   // Receive data from slaves
-        //     actuators_ptr[i].processStates(); // Process the states of the actuators
-        //     actuators_ptr[i].sendData();      // Send data to slaves
-        // }
-        };
+        // 3) ms 단위 변환
+        double sampling_ms = delta_ns * 1e-6;
 
-        void *slaveReadWriteThread(void *arg) {
-            // 1. Initialize EtherCAT Master
-            if (!initEcatMaster(IFNAME)) {
-                std::cerr << "Error: ecat_init failed on interface " << IFNAME << "\n";
-                ThreadRunningFlag = false;
-            }
-            ThreadRunningFlag = true;
-            // 2. EtherCAT slave number check
+        // 4) jitter 계산 (ms)
+        double jitter_ms = sampling_ms - static_cast<double>(period_ms);
+        (void)jitter_ms; // 필요 시 로깅 사용
 
-            #ifdef NON_SLAVE_TS
-            if (ec_slavecount == SLAVES_NUM) {
-                ThreadRunningFlag = 0;
-                // for(int i=1;i<=SLAVES_NUM-1;i++)
-            
-                #ifdef SLAVE_GTWI
-                for (int i = 1; i <= NUMOF_GTWI_SLAVES; i++) {
-                // PO: Pre-Operation, SO: Safe-Operation
-                // Link slave's specific setups to PO -> SO
-                ec_slave[i].PO2SOconfig = ecat_PDO_Config_GTWI; // Doesn't this
-                function need argument ?
-                //=> PO2SOconfig is also function.
-                }
-            #endif
+        // 5) overrun 집계
+        if (ticks > 1) overrun_count += (ticks - 1);
+
+        work(sampling_ms, overrun_count);
+    }
+
+    // (선택) EVL detach가 필요하다면 여기에서 호출
+    // evl_detach_self();
+}
+
+// ============================================================================
+// 2) 주기 루프에서 PDO 송수신 + WKC 감시
+// ============================================================================
+auto slaveReadWriteLoop = [](double sampling_ms, unsigned long long overrun_count) {
+    ec_send_overlap_processdata();                // PDO send
+    wkc = ec_receive_processdata(EC_TIMEOUTRET);  // PDO recv → WKC
+
+    if (expectedWKC > wkc) {
+        ThreadRunningFlag = 0; // 전체 RT 스레드 종료 신호
+        std::cout << "sigRTKilled at wkc calculation!" << std::endl;
+    }
+};
+
+// ============================================================================
+// 3) SOEM 초기화 → PO2SO 설정 → 맵핑/DC → 주기 진입
+// ============================================================================
+void *slaveReadWriteThread(void *arg) {
+    if (!initEcatMaster(IFNAME)) {
+        std::cerr << "Error: ecat_init failed on interface " << IFNAME << "\n";
+        ThreadRunningFlag = false;
+        return nullptr;
+    }
+    ThreadRunningFlag = true;
+
+#ifdef NON_SLAVE_TS
+    if (ec_slavecount == SLAVES_NUM) {
+        cout << "AAA" << endl;
+        ThreadRunningFlag = 0;
+        cout << "BBB" << endl;
+    #ifdef SLAVE_GTWI
+        for (int i = 1; i <= NUMOF_GTWI_SLAVES; i++)
+            ec_slave[i].PO2SOconfig = ecat_PDO_Config_GTWI;
+    #endif
+    #ifdef SLAVE_PTWI
+        for (int i = 1; i <= PTWI_SLAVES_NUM; i++){
+            ec_slave[i].PO2SOconfig = ecat_PDO_Config_PTWI;
+            cout << ec_slave[i].PO2SOconfig << endl;}
+    #endif
+    } else {
+        std::cout << "sigRTKilled at ecat_init!" << std::endl;
+        return nullptr;
+    }
+#endif
+
+#ifdef SLAVE_ANYBUS
+
+    if (ec_slavecount == SLAVES_NUM + 1) {
+        ThreadRunningFlag = true;
+        for (int i = 1; i <= SLAVES_NUM + 1; i++) {
+            if (i == 1) {
+                ec_slave[i].PO2SOconfig = ecat_PDO_Config_TS;
+            } else if (i > 1 && i <= PTWI_SLAVES_NUM + 1) {
             #ifdef SLAVE_PTWI
-                for (int i = NUMOF_GTWI_SLAVES + 1; i <= NUMOF_GTWI_SLAVES + PTWI_SLAVES_NUM; i++) {
-                // PO: Pre-Operation, SO: Safe-Operation
-                // Link slave's specific setups to PO -> SO
-                ec_slave[i].PO2SOconfig = ecat_PDO_Config_PTWI; // Doesn't this
-                function need argument ?
-                //=> PO2SOconfig is also function.
-                }
+                ec_slave[i].PO2SOconfig = ecat_PDO_Config_PTWI;
             #endif
-            }
-            else
-                std::cout << "sigRTKilled at ecat_init!" << endl;
-            return false;
-            #endif
-
-            #ifdef SLAVE_ANYBUS
-
-                if (ec_slavecount == SLAVES_NUM + 1) {
-                    ThreadRunningFlag = true;
-                    for (int i = 1; i <= SLAVES_NUM + 1; i++) {
-                    // PO: Pre-Operation, SO: Safe-Operation
-                    // Link slave's specific setups to PO -> SO
-                    if (i == 1) { ec_slave[i].PO2SOconfig = ecat_PDO_Config_TS; }
-
-                    else if (i > 1 && i <= PTWI_SLAVES_NUM + 1) {
-                #ifdef SLAVE_PTWI
-                        ec_slave[i].PO2SOconfig = ecat_PDO_Config_PTWI; // Doesn't this function need argument ?
-                #endif
-                    }
-                    else {
-
-                #ifdef SLAVE_GTWI
-                        ec_slave[i].PO2SOconfig = ecat_PDO_Config_GTWI; // Doesn't this function need argument ?
-                #endif
-                    }
-                    //=> PO2SOconfig is also function.
-                    }
-                }
-                else {
-                    std::cout << "AAAAAAAAAAAAAAAa" << endl;
-                    std::cout << "sigRTKilled at PDO mapping!" << endl;
-                    ThreadRunningFlag = false;
-                }
-            #endif
-
-
-
-            ec_config_overlap_map(
-                &IOmap); // Map all PDOs from slaves to IOmap with Outputs / Inputs in sequential order.
-
-            // 3. Setting Distributed Clock
-            if (ec_configdc() > 0) {
-                // our control period is 1 ms → 1,000,000 ns
-                uint32 cycletime_ns = 1000 * 1000UL;
-                for (int i = 1; i <= ec_slavecount; ++i) {
-                if (ec_slave[i].hasdc) {
-                    // activate SYNC0 on each DC‐capable slave
-                    ec_dcsync0(i, TRUE, cycletime_ns, 0);
-                }
-                }
-            }
-
-            ec_statecheck(0, EC_STATE_SAFE_OP, 4 * EC_TIMEOUTSTATE); // EC_TIMEOUTSTATE=2,000,000 us
-
-            // 6. Calculate expected WKC
-            expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC; // Calculate WKCs
-
-            // 7. Change MASTER state to operational
-            ec_slave[0].state = EC_STATE_OPERATIONAL;
-
-            // 8. Send one valid process data(Execute PDO communication once)
-            ec_send_overlap_processdata();               // Send processdata to slave.
-            wkc = ec_receive_processdata(EC_TIMEOUTRET); // Receive processdata from slaves.
-
-            // 9. Request OP state for all slaves
-            ec_writestate(0); // Write slave state.
-
-            // 10. PDO data Receive/Transmit
-            uint32 obytes = ec_slave[1].Obytes; // Obytes: Output bytes
-            uint32 ibytes = ec_slave[1].Ibytes; // Ibytes: Input bytes
-
-            for (int i = 0; i < SLAVES_NUM; ++i) {
+            } else {
             #ifdef SLAVE_GTWI
-                elmo_gtwi_rx_pdo[i] = (GtwiRxPDOMap *)ec_slave[i + 1].outputs; // ! ec_slave[0] is ECAT master
-                elmo_gtwi_tx_pdo[i] = (GtwiTxPDOMap *)ec_slave[i + 1].inputs;  // ! while it is not for elmo
-            #endif
-            #ifdef SLAVE_PTWI
-                elmo_ptwi_rx_pdo[i] =
-                    (PtwiRxPDOMap *)ec_slave[i + 2]
-                        .outputs; // ! ec_slave[0] is ECAT master, ec_slave[1] is ANYBUS communicator
-                elmo_ptwi_tx_pdo[i] = (PtwiTxPDOMap *)ec_slave[i + 2].inputs; // ! while it is not for elmo
+                ec_slave[i].PO2SOconfig = ecat_PDO_Config_GTWI;
             #endif
             }
-            #ifdef SLAVE_ANYBUS
-            anybus_rx_pdo = (AnybusRxPDOMap *)ec_slave[1]
-                                .outputs; // ! ec_slave[0] is ECAT master, ec_slave[1] is ANYBUS communicator
-            anybus_tx_pdo = (AnybusTxPDOMap *)ec_slave[1].inputs;
-            #endif
-            for (int i = 0; i < SLAVES_NUM; ++i) {
-            #ifdef SLAVE_PTWI
-                Act_->setPtwiPdoPointers(elmo_ptwi_tx_pdo[i], elmo_ptwi_rx_pdo[i]);
-            #endif
-            #ifdef SLAVE_GTWI
-                Act_->setGtwiPdoPointers(elmo_gtwi_tx_pdo[i], elmo_gtwi_rx_pdo[i]);
-            #endif
-            #ifdef SLAVE_ANYBUS
-                Act_->setAnybusPdoPointers(anybus_tx_pdo);
-            #endif
-            }
-
-            run_periodic(0, RT_ELMO_PERIOD_MS, slaveReadWriteLoop);
-
-            return nullptr; // Thread will exit after this
         }
+    } else {
+        std::cout << "sigRTKilled at PDO mapping!" << std::endl;
+        ThreadRunningFlag = false;
+        return nullptr;
+    }
+#endif
 
+    ec_config_overlap_map(&IOmap[0]);
+
+    if (ec_configdc() > 0) {
+        uint32 cycletime_ns = 1000 * 1000UL; // 1 ms
+        for (int i = 1; i <= ec_slavecount; ++i)
+            if (ec_slave[i].hasdc) ec_dcsync0(i, TRUE, cycletime_ns, 0);
+    }
+
+    ec_statecheck(0, EC_STATE_SAFE_OP, 4 * EC_TIMEOUTSTATE);
+
+    expectedWKC = (ec_group[0].outputsWKC * 2) + ec_group[0].inputsWKC;
+
+    ec_slave[0].state = EC_STATE_OPERATIONAL;
+    ec_send_overlap_processdata();
+    wkc = ec_receive_processdata(EC_TIMEOUTRET);
+    ec_writestate(0);
+
+#ifdef SLAVE_GTWI
+    for (int i = 0; i < SLAVES_NUM; ++i) {
+        elmo_gtwi_rx_pdo[i] = (GtwiRxPDOMap *)ec_slave[i + 1].outputs;
+        elmo_gtwi_tx_pdo[i] = (GtwiTxPDOMap *)ec_slave[i + 1].inputs;
+    }
+#endif
+#ifdef SLAVE_PTWI
+    for (int i = 0; i < SLAVES_NUM; ++i) {
+        // ANYBUS(1번)가 있으면 +2, 없으면 +1로 조정 필요
+        elmo_ptwi_rx_pdo[i] = (PtwiRxPDOMap *)ec_slave[i + 2].outputs;
+        elmo_ptwi_tx_pdo[i] = (PtwiTxPDOMap *)ec_slave[i + 2].inputs;
+    }
+#endif
+#ifdef SLAVE_ANYBUS
+    anybus_rx_pdo = (AnybusRxPDOMap *)ec_slave[1].outputs;
+    anybus_tx_pdo = (AnybusTxPDOMap *)ec_slave[1].inputs;
+#endif
+
+    for (int i = 0; i < SLAVES_NUM; ++i) {
+    #ifdef SLAVE_PTWI
+        Act_->setPtwiPdoPointers(elmo_ptwi_tx_pdo[i], elmo_ptwi_rx_pdo[i]);
+    #endif
+    #ifdef SLAVE_GTWI
+        Act_->setGtwiPdoPointers(elmo_gtwi_tx_pdo[i], elmo_gtwi_rx_pdo[i]);
+    #endif
+    #ifdef SLAVE_ANYBUS
+        Act_->setAnybusPdoPointers(anybus_tx_pdo);
+    #endif
+    }
+
+    // 주기 실행 (여기서 id=0 사용)
+    run_periodic(0, RT_ELMO_PERIOD_MS, slaveReadWriteLoop);
+    return nullptr;
+}
 
 //! Debugging
 

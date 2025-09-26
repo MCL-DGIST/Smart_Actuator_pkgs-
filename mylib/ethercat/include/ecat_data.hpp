@@ -16,14 +16,11 @@
 #define SLAVE_PTWI 1 
 #define NON_SLAVE_TS
 
-// #define SLAVE_ANYBUS 
+// #define SLAVE_ANYBUS  
 // #define SLAVE_FT
 // #define SLAVE_FT_NUM  // Number of Force/Torque sensors
 
-// Manipulator type definitions
-#define RA_ONLY
-// #define SEA_ONLY
-// #define DUAL_ARM
+
 
 /**
  * @brief EtherCAT communication status

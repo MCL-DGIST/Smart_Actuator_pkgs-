@@ -86,7 +86,7 @@ int ecat_PDO_Config(uint16 slave);       // PDO 매핑 설정 함수
 
 // main.cc에서 정의됨
 extern const char* IFNAME;      // e.g., "enp2s0"
-extern char IOmap[4096];        // PDO 매핑 버퍼
+extern char IOmap[64 * 1024];        // PDO 매핑 버퍼
 
 // main.cc에서 정의됨 (PDO 포인터)
 extern output_ELMO_t* out_ELMO[NUMOF_SLAVES];
